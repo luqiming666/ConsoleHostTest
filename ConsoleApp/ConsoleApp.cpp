@@ -40,7 +40,7 @@ int main()
     while (true) {
         getline(std::wcin, line);  // 读取整行，直到换行符（换行符被丢弃）
 
-        std::wcout << L"The input has " << line.size() << L" characters. They are: " << line << std::endl;
+        //std::wcout << L"The input has " << line.size() << L" characters. They are: " << line << std::endl;
         //std::wcout.write(line.c_str(), line.length());  // 避免line中的\0 导致输出中断
         //std::wcout << std::endl;  // 手动添加换行符
 

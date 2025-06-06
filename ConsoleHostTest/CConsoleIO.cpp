@@ -49,7 +49,7 @@ BOOL CConsoleIO::StartProcess(LPCTSTR szExePath, OutputCallback callback)
     // 配置启动信息（重定向标准输入/输出）
     STARTUPINFO si = { sizeof(STARTUPINFO) };
     si.dwFlags = STARTF_USESTDHANDLES | STARTF_USESHOWWINDOW;
-    si.wShowWindow = SW_NORMAL; // 隐藏子进程控制台窗口
+    si.wShowWindow = SW_HIDE; // 隐藏子进程控制台窗口, debug：SW_NORMAL
     si.hStdInput = m_hInputRd;
     si.hStdOutput = m_hOutputWr;
     si.hStdError = m_hOutputWr; // 错误输出重定向到输出管道

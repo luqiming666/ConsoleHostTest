@@ -7,7 +7,6 @@
 #include "ConsoleHostTest.h"
 #include "ConsoleHostTestDlg.h"
 #include "afxdialogex.h"
-#include "UMiscUtils.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -107,7 +106,7 @@ BOOL CConsoleHostTestDlg::OnInitDialog()
 	SetIcon(m_hIcon, FALSE);		// 设置小图标
 
 	// TODO: 在此添加额外的初始化代码
-	CString strCmd(L"D:\\Dev\\ConsoleHostTest\\Debug\\ConsoleApp.exe");
+	CString strCmd(L"D:\\Dev\\GitHub\\ConsoleHostTest\\Debug\\ConsoleApp.exe");
 	// 启动子进程（传入程序路径和回调）
 	m_ConsoleIO.StartProcess(strCmd,
 		std::bind(&CConsoleHostTestDlg::OnConsoleOutput, this, std::placeholders::_1));
