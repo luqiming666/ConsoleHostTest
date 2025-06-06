@@ -23,13 +23,13 @@ void CConsoleIO::CloseAllPipes()
         CloseHandle(m_hInputRd);
         m_hInputRd = NULL;
     }
+    if (m_hOutputWr) {  // 关闭管道的写入端，可让ReadFile脱离阻塞状态
+        CloseHandle(m_hOutputWr);
+        m_hOutputWr = NULL;
+    }
     if (m_hOutputRd) {
         CloseHandle(m_hOutputRd);
         m_hOutputRd = NULL;
-    }
-    if (m_hOutputWr) {
-        CloseHandle(m_hOutputWr);
-        m_hOutputWr = NULL;
     }
 }
 
