@@ -1,40 +1,40 @@
-#pragma once
+ï»¿#pragma once
 
 #include <functional>
 
 class CConsoleIO
 {
 public:
-    // Êä³ö»Øµ÷º¯ÊıÀàĞÍ
+    // è¾“å‡ºå›è°ƒå‡½æ•°ç±»å‹
     using OutputCallback = std::function<void(const CString&)>;
 
-    // ¹¹Ôì/Îö¹¹
+    // æ„é€ /ææ„
     CConsoleIO();
     ~CConsoleIO();
 
-    // Æô¶¯×Ó½ø³Ì£¨´«Èë³ÌĞòÂ·¾¶ºÍ»Øµ÷£©
-    BOOL StartProcess(LPCTSTR szExePath, OutputCallback callback);
+    // å¯åŠ¨å­è¿›ç¨‹ï¼ˆä¼ å…¥ç¨‹åºè·¯å¾„å’Œå›è°ƒï¼‰
+    BOOL StartProcess(LPTSTR szExePathWithParams, OutputCallback callback);
 
-    // Ïò×Ó½ø³Ì·¢ËÍÊäÈë
+    // å‘å­è¿›ç¨‹å‘é€è¾“å…¥
     void WriteInput(const CString& strInput);
 
-    // ÖÕÖ¹×Ó½ø³Ì
+    // ç»ˆæ­¢å­è¿›ç¨‹
     void TerminateProcess();
 
 private:
-    // ¶ÁÈ¡Êä³öÏß³Ìº¯Êı
+    // è¯»å–è¾“å‡ºçº¿ç¨‹å‡½æ•°
     static DWORD WINAPI _ReadOutputThread(LPVOID lpParam);
     void CloseAllPipes();
 
-    // ¹ÜµÀ¾ä±ú
+    // ç®¡é“å¥æŸ„
     HANDLE m_hInputWr = NULL;
     HANDLE m_hInputRd = NULL;
     HANDLE m_hOutputRd = NULL;
     HANDLE m_hOutputWr = NULL;
 
-    // ½ø³ÌĞÅÏ¢
+    // è¿›ç¨‹ä¿¡æ¯
     PROCESS_INFORMATION m_piProcInfo = { 0 };
 
-    // »Øµ÷º¯Êı
+    // å›è°ƒå‡½æ•°
     OutputCallback m_OutputCallback;
 };

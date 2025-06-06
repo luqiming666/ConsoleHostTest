@@ -1,5 +1,6 @@
-#include "pch.h"
+ï»¿#include "pch.h"
 #include "CConsoleIO.h"
+#include <string>
 
 CConsoleIO::CConsoleIO() 
 {
@@ -32,48 +33,59 @@ void CConsoleIO::CloseAllPipes()
     }
 }
 
-BOOL CConsoleIO::StartProcess(LPCTSTR szExePath, OutputCallback callback) 
+BOOL CConsoleIO::StartProcess(LPTSTR szExePathWithParams, OutputCallback callback)
 {
-    // ³õÊ¼»¯°²È«ÊôĞÔ£¨ÔÊĞí¾ä±ú¼Ì³Ğ£©
+    // åˆå§‹åŒ–å®‰å…¨å±æ€§ï¼ˆå…è®¸å¥æŸ„ç»§æ‰¿ï¼‰
     SECURITY_ATTRIBUTES saAttr = { sizeof(SECURITY_ATTRIBUTES), NULL, TRUE };
 
-    // ´´½¨Êä³ö¹ÜµÀ£¨×Ó½ø³ÌÊä³ö ¡ú Ö÷½ø³Ì¶ÁÈ¡£©
+    // åˆ›å»ºè¾“å‡ºç®¡é“ï¼ˆå­è¿›ç¨‹è¾“å‡º â†’ ä¸»è¿›ç¨‹è¯»å–ï¼‰
     if (!CreatePipe(&m_hOutputRd, &m_hOutputWr, &saAttr, 0)) return FALSE;
 
-    // ´´½¨ÊäÈë¹ÜµÀ£¨Ö÷½ø³ÌĞ´Èë ¡ú ×Ó½ø³ÌÊäÈë£©
+    // åˆ›å»ºè¾“å…¥ç®¡é“ï¼ˆä¸»è¿›ç¨‹å†™å…¥ â†’ å­è¿›ç¨‹è¾“å…¥ï¼‰
     if (!CreatePipe(&m_hInputRd, &m_hInputWr, &saAttr, 0)) {
         CloseAllPipes();
         return FALSE;
     }
 
-    // ÅäÖÃÆô¶¯ĞÅÏ¢£¨ÖØ¶¨Ïò±ê×¼ÊäÈë/Êä³ö£©
+    // é…ç½®å¯åŠ¨ä¿¡æ¯ï¼ˆé‡å®šå‘æ ‡å‡†è¾“å…¥/è¾“å‡ºï¼‰
     STARTUPINFO si = { sizeof(STARTUPINFO) };
     si.dwFlags = STARTF_USESTDHANDLES | STARTF_USESHOWWINDOW;
-    si.wShowWindow = SW_HIDE; // Òş²Ø×Ó½ø³Ì¿ØÖÆÌ¨´°¿Ú, debug£ºSW_NORMAL
+    si.wShowWindow = SW_HIDE; // éšè—å­è¿›ç¨‹æ§åˆ¶å°çª—å£, debugï¼šSW_NORMAL
     si.hStdInput = m_hInputRd;
     si.hStdOutput = m_hOutputWr;
-    si.hStdError = m_hOutputWr; // ´íÎóÊä³öÖØ¶¨Ïòµ½Êä³ö¹ÜµÀ
+    si.hStdError = m_hOutputWr; // é”™è¯¯è¾“å‡ºé‡å®šå‘åˆ°è¾“å‡ºç®¡é“
 
-    // Æô¶¯×Ó½ø³Ì
-    if (!::CreateProcess(szExePath, NULL, NULL, NULL, TRUE,
+    // å¯åŠ¨å­è¿›ç¨‹
+    if (!::CreateProcess(NULL, szExePathWithParams, NULL, NULL, TRUE,
         CREATE_NEW_CONSOLE, NULL, NULL, &si, &m_piProcInfo)) {
         CloseAllPipes();
         return FALSE;
     }
 
-    // ±£´æ»Øµ÷²¢Æô¶¯¶ÁÈ¡Ïß³Ì
+    // ä¿å­˜å›è°ƒå¹¶å¯åŠ¨è¯»å–çº¿ç¨‹
     m_OutputCallback = callback;
     CreateThread(NULL, 0, _ReadOutputThread, this, 0, NULL);
     return TRUE;
+}
+
+std::string ConvertToUTF8(const CString& wideStr) {
+    int byteCount = WideCharToMultiByte(CP_UTF8, 0, wideStr, -1, NULL, 0, NULL, NULL);
+    if (byteCount <= 0) return "";
+
+    std::string result(byteCount, 0);
+    WideCharToMultiByte(CP_UTF8, 0, wideStr, -1, &result[0], byteCount, NULL, NULL);
+    return result;
 }
 
 void CConsoleIO::WriteInput(const CString& strInput) 
 {
     if (!m_hInputWr) return;
 
-    CString str = strInput + _T("\n"); // Ìí¼Ó»»ĞĞ·ûÄ£Äâ¼üÅÌÊäÈë
-    DWORD bytesToWrite = str.GetLength() * sizeof(TCHAR);
-    BOOL ret = WriteFile(m_hInputWr, (LPCTSTR)str, bytesToWrite, NULL, NULL);
+    CString str = strInput + _T("\n"); // æ·»åŠ æ¢è¡Œç¬¦æ¨¡æ‹Ÿé”®ç›˜è¾“å…¥
+    //DWORD bytesToWrite = str.GetLength() * sizeof(TCHAR);
+    std::string dataToWrite = ConvertToUTF8(str);
+    DWORD bytesToWrite = dataToWrite.size() - 1; // å­—ç¬¦ä¸²ç»“æŸç¬¦ä¸è¦å†™å…¥ï¼
+    BOOL ret = WriteFile(m_hInputWr, dataToWrite.data(), bytesToWrite, NULL, NULL);
 }
 
 void CConsoleIO::TerminateProcess() 
@@ -96,7 +108,7 @@ DWORD WINAPI CConsoleIO::_ReadOutputThread(LPVOID lpParam)
         ReadFile(pThis->m_hOutputRd, chBuf, sizeof(chBuf) - 1, &dwRead, NULL) &&
         dwRead > 0) {
         chBuf[dwRead] = '\0';
-        pThis->m_OutputCallback(CString(chBuf)); // µ÷ÓÃ»Øµ÷´«µİÊı¾İ
+        pThis->m_OutputCallback(CString(chBuf)); // è°ƒç”¨å›è°ƒä¼ é€’æ•°æ®
     }
     return 0;
 }

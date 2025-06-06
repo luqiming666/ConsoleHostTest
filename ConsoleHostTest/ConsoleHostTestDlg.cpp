@@ -105,11 +105,11 @@ BOOL CConsoleHostTestDlg::OnInitDialog()
 	SetIcon(m_hIcon, TRUE);			// 设置大图标
 	SetIcon(m_hIcon, FALSE);		// 设置小图标
 
-	// TODO: 在此添加额外的初始化代码
-	CString strCmd(L"D:\\Dev\\GitHub\\ConsoleHostTest\\Debug\\ConsoleApp.exe");
+	CString strExeParams(L"ConsoleApp.exe");
 	// 启动子进程（传入程序路径和回调）
-	m_ConsoleIO.StartProcess(strCmd,
+	m_ConsoleIO.StartProcess(strExeParams.GetBuffer(),
 		std::bind(&CConsoleHostTestDlg::OnConsoleOutput, this, std::placeholders::_1));
+	strExeParams.ReleaseBuffer();
 
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
